@@ -48,6 +48,7 @@ namespace Assets.Scripts
                 block.c = c;
                 block.empty = false;
                 block.toggle.isOn = false;
+                block.merged = false;
             }
 
             answerText.text = FillRandom().ToString();
@@ -57,31 +58,27 @@ namespace Assets.Scripts
         {
             var rnd = new Random();
 
-            var lastLine = 3;//rnd.Next(0, columnCount);
+            //var lastLine = 3;//rnd.Next(0, columnCount);
 
             var answer = 0;
             
             for (var i = 0; i < columnCount; i++)
             {
-                if (i != lastLine)
+                for (var j = 0; j < columnCount; j++)
                 {
-                    blockArray[i, 0].v = rnd.Next(1, 5);
-                    blockArray[i, 1].v = rnd.Next(1, 5);
-                    blockArray[i, 2].v = rnd.Next(1, 5);
-                    blockArray[i, 3].v = blockArray[i, 0].v + blockArray[i, 1].v + blockArray[i, 2].v;
-                }
-                else
-                {
-                    blockArray[i, 0].v = rnd.Next(1, 5);
-                    blockArray[i, 1].v = rnd.Next(1, 5);
-                    blockArray[i, 2].v = rnd.Next(1, 5);
-                    blockArray[i, 3].v = rnd.Next(1, 5);
-
-                    answer = blockArray[i, 0].v + blockArray[i, 1].v + blockArray[i, 2].v + blockArray[i, 3].v;
+                    if (i == 0 || i == columnCount - 1 || j == 0 || j == columnCount - 1)
+                    {
+                        blockArray[j, i].empty = true;
+                    }
+                    else
+                    {
+                        blockArray[j, i].empty = false;
+                        blockArray[j, i].v = rnd.Next(1, 11);
+                    }
                 }
             }
 
-            return answer;
+            return rnd.Next(10,20);
         }
 
         // Update is called once per frame
@@ -155,19 +152,32 @@ namespace Assets.Scripts
                     CleanBlock(b2);
                 }
             }
+            else if (b1.merged && b2.merged)
+            {
+                // 두 블럭이 인접했는지를 보고, a --> a 방향으로 합친다.
+                var blockMemo = new HashSet<Block>();
+
+                if (CanMeet(b1, b2, blockMemo))
+                {
+                    MoveAbs(b1, b2);
+                }
+            }
             else
             {
                 // 두 블럭이 인접했는지를 보고, a --> a 방향으로 합친다.
-                if (IsNeighbor(b1, b2))
+                var blockMemo = new HashSet<Block>();
+
+                if (CanMeet(b1, b2, blockMemo))
                 {
                     MoveAdd(b1, b2);
+                    b2.merged = true;
                 }
             }
 
             b1.toggle.isOn = false;
             b2.toggle.isOn = false;
 
-            Collapse();
+            //Collapse();
         }
 
         private bool CanMeet(Block a, Block b, HashSet<Block> blockMemo)
@@ -264,6 +274,12 @@ namespace Assets.Scripts
         {
             CleanBlock(a);
             b.v += a.v;
+        }
+
+        public void MoveAbs(Block a, Block b)
+        {
+            CleanBlock(a);
+            b.v = Mathf.Abs(a.v - b.v);
         }
 
         public void Move(Block a, Block b)
