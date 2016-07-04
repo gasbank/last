@@ -26,10 +26,10 @@ namespace Assets.Scripts
 
             blockArray = new Block[columnCount, columnCount];
 
-            ResetBoard();
+            ResetBoard(5);
         }
 
-        public void ResetBoard()
+		public void ResetBoard(int m)
         {
 
             var i = 0;
@@ -51,10 +51,10 @@ namespace Assets.Scripts
                 block.merged = false;
             }
 
-            answerText.text = FillRandom().ToString();
+            answerText.text = FillRandom(m).ToString();
         }
 
-        private int FillRandom()
+		private int FillRandom(int m)
         {
             var rnd = new Random();
 
@@ -73,7 +73,7 @@ namespace Assets.Scripts
                     else
                     {
                         blockArray[j, i].empty = false;
-                        blockArray[j, i].v = rnd.Next(1, 11);
+                        blockArray[j, i].v = rnd.Next(1, m + 1);
                     }
                 }
             }
