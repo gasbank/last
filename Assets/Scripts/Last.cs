@@ -18,6 +18,7 @@ namespace Assets.Scripts
         private Block b2;
 
         public Text answerText;
+        public GameObject blockPrefab;
 
         // Use this for initialization
         void Start()
@@ -26,17 +27,26 @@ namespace Assets.Scripts
 
             blockArray = new Block[columnCount, columnCount];
 
-            ResetBoard(5);
+            ResetBoard(columnCount - 2);
         }
 
 		public void ResetBoard(int m)
         {
-
-            var i = 0;
             foreach (var block in toggleGroupPanel.GetComponentsInChildren<Block>())
             {
+                Destroy(block.gameObject);
+            }
+            List<Block> blockList = new List<Block>();
+            for (int b = 0; b < (1+m+1) * (1+m+1); b++)
+            {
+                blockList.Add(Instantiate(blockPrefab, toggleGroupPanel.gameObject.transform).GetComponent<Block>());
+            }
+            
+            var i = 0;
+            foreach (var block in blockList)
+            {
                 //block.toggle.isOn = false;
-
+                Debug.LogFormat("Block {0} set...", i);
                 var r = i / columnCount;
                 var c = i % columnCount;
                 blockArray[r, c] = block;
@@ -60,7 +70,7 @@ namespace Assets.Scripts
 
             //var lastLine = 3;//rnd.Next(0, columnCount);
 
-            var answer = 0;
+            //var answer = 0;
             
             for (var i = 0; i < columnCount; i++)
             {

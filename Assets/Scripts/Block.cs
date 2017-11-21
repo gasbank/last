@@ -54,5 +54,9 @@ namespace Assets.Scripts
         }
         private bool _empty;
 
+        public void OnValueChanged()
+        {
+            SendMessageUpwards("OnToggleChange");
+        }
     }
 }
