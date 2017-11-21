@@ -12,7 +12,7 @@ namespace Assets.Scripts
         public GameObject toggleGroupPanel;
         public GridLayoutGroup gridLayoutGroup;
 
-        private int columnCount;
+        private int columnCount; // Total column count (including margin columns)
         private Block[,] blockArray;
         private Block b1;
         private Block b2;
@@ -23,15 +23,17 @@ namespace Assets.Scripts
         // Use this for initialization
         void Start()
         {
-            columnCount = gridLayoutGroup.constraintCount;
-
-            blockArray = new Block[columnCount, columnCount];
-
-            ResetBoard(columnCount - 2);
+            ResetBoard(5);
         }
 
 		public void ResetBoard(int m)
         {
+            columnCount = 1 + m + 1;
+
+            gridLayoutGroup.constraintCount = columnCount;
+
+            blockArray = new Block[columnCount, columnCount];
+
             foreach (var block in toggleGroupPanel.GetComponentsInChildren<Block>())
             {
                 Destroy(block.gameObject);
