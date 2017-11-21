@@ -66,6 +66,35 @@ namespace Assets.Scripts
             answerText.text = FillRandom(m).ToString();
         }
 
+        enum Pattern {
+            Two,
+            Three,
+            Five,
+        }
+
+        private int[] GetFillPattern(Pattern p, int maxValue)
+        {
+            var rnd = new Random();
+            var list = new List<int>();
+            switch (p) {
+                case Pattern.Two:
+                var v = rnd.Next(1, maxValue + 1);
+                list.Add(v);
+                list.Add(v);
+                break;
+                case Pattern.Three:
+                var vsum = rnd.Next(1+2, maxValue + 1);
+                var v1 = rnd.Next(1, vsum);
+                list.Add(v1);
+                list.Add(vsum - v1);
+                list.Add(vsum);
+                break;
+                case Pattern.Five:
+                break;
+            }
+            return list.ToArray();
+        }
+
 		private int FillRandom(int m)
         {
             var rnd = new Random();
