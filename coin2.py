@@ -6,7 +6,7 @@ def crossprod (list1, list2):
     return output
 
 def breakit(target, coins):
-    coinslimit = [(target / coins[i]) for i in range(0,len(coins))]
+    coinslimit = [int(target / coins[i]) for i in range(0,len(coins))]
     count = 0
     temp = []
     for i in range(0,len(coins)):
@@ -23,7 +23,7 @@ def breakit(target, coins):
 
     for targets in r:
         if crossprod(targets, coins) == target:
-            print targets
+            print(targets)
             count +=1
     return count
 
@@ -33,13 +33,13 @@ def breakit(target, coins):
 if __name__ == "__main__":
     coins = [5, 3, 2]
     target = 2*2
-    print '2x2'
-    print breakit(2*2, coins)
-    print '3x3'
-    print breakit(3*3, coins)
-    print '4x4'
-    print breakit(4*4, coins)
-    print '5x5'
-    print breakit(5*5, coins)
+    print('2x2')
+    print(breakit(2*2, coins))
+    print('3x3')
+    print(breakit(3*3, coins))
+    print('4x4')
+    print(breakit(4*4, coins))
+    print('5x5')
+    print(breakit(5*5, coins))
 
 

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using Random = System.Random;
+using System.Linq;
 
 namespace Assets.Scripts
 {
@@ -20,13 +21,74 @@ namespace Assets.Scripts
         public Text answerText;
         public GameObject blockPrefab;
 
+
+        enum Pattern
+        {
+            Five = 0,
+            Three = 1,
+            Two = 2,
+        }
+
+        enum TableSize
+        {
+            Two = 2,
+            Three = 3,
+            Four = 4,
+            Five = 5,
+        }
+
+        Dictionary<TableSize, int[][]> patternDictionary = new Dictionary<TableSize, int[][]>();
+        Random rnd = new Random((int)DateTime.Now.Ticks);
+
+        private void Awake()
+        {
+            patternDictionary[TableSize.Two] = new int[][]
+            {
+                new int[] { 0, 0, 2 },
+            };
+            patternDictionary[TableSize.Three] = new int[][]
+            {
+                new int[]{0, 3, 0},
+                new int[]{1, 0, 2},
+                new int[]{0, 1, 3},
+            };
+            patternDictionary[TableSize.Four] = new int[][]
+            {
+                new int[]{2, 2, 0},
+                new int[]{1, 3, 1},
+                new int[]{0, 4, 2},
+                new int[]{2, 0, 3},
+                new int[]{1, 1, 4},
+                //new int[]{0, 2, 5},
+                //new int[]{0, 0, 8},
+            };
+            patternDictionary[TableSize.Five] = new int[][]
+            {
+                new int[]{5, 0, 0},
+                new int[]{2, 5, 0},
+                new int[]{4, 1, 1},
+                new int[]{1, 6, 1},
+                new int[]{3, 2, 2},
+                new int[]{0, 7, 2},
+                new int[]{2, 3, 3},
+                new int[]{1, 4, 4},
+                new int[]{3, 0, 5},
+                new int[]{0, 5, 5},
+                //new int[]{2, 1, 6},
+                //new int[]{1, 2, 7},
+                //new int[]{0, 3, 8},
+                //new int[]{1, 0, 10},
+                //new int[]{0, 1, 11},
+            };
+        }
+
         // Use this for initialization
         void Start()
         {
-            ResetBoard(5);
+            ResetBoard((int)TableSize.Five);
         }
 
-		public void ResetBoard(int m)
+        public void ResetBoard(int m)
         {
             columnCount = 1 + m + 1;
 
@@ -39,11 +101,11 @@ namespace Assets.Scripts
                 Destroy(block.gameObject);
             }
             List<Block> blockList = new List<Block>();
-            for (int b = 0; b < (1+m+1) * (1+m+1); b++)
+            for (int b = 0; b < (1 + m + 1) * (1 + m + 1); b++)
             {
                 blockList.Add(Instantiate(blockPrefab, toggleGroupPanel.gameObject.transform).GetComponent<Block>());
             }
-            
+
             var i = 0;
             foreach (var block in blockList)
             {
@@ -63,46 +125,97 @@ namespace Assets.Scripts
                 block.merged = false;
             }
 
-            answerText.text = FillRandom(m).ToString();
-        }
-
-        enum Pattern {
-            Two,
-            Three,
-            Five,
+            answerText.text = FillRandomCanClear(m).ToString();
         }
 
         private int[] GetFillPattern(Pattern p, int maxValue)
         {
-            var rnd = new Random();
             var list = new List<int>();
-            switch (p) {
+            switch (p)
+            {
                 case Pattern.Two:
-                var v = rnd.Next(1, maxValue + 1);
-                list.Add(v);
-                list.Add(v);
-                break;
+                    var v = rnd.Next(1, maxValue + 1);
+                    list.Add(v);
+                    list.Add(v);
+                    break;
                 case Pattern.Three:
-                var vsum = rnd.Next(1+2, maxValue + 1);
-                var v1 = rnd.Next(1, vsum);
-                list.Add(v1);
-                list.Add(vsum - v1);
-                list.Add(vsum);
-                break;
+                    var vsum = rnd.Next(1 + 2, maxValue + 1);
+                    var v1 = rnd.Next(1, vsum);
+                    list.Add(v1);
+                    list.Add(vsum - v1);
+                    list.Add(vsum);
+                    break;
                 case Pattern.Five:
-                break;
+                    list.Add(4);
+                    list.Add(3);
+                    list.Add(2);
+                    list.Add(1);
+                    list.Add(4);
+                    break;
             }
             return list.ToArray();
         }
 
-		private int FillRandom(int m)
+        private int FillRandomCanClear(int m)
+        {
+            Debug.LogFormat("FillRandomCanClear {0}", m);
+
+            int patternIndex = rnd.Next(0, patternDictionary[(TableSize)m].Length);
+            int[] fillPatternCount = patternDictionary[(TableSize)m][patternIndex];
+            List<Pattern> patternList = new List<Pattern>();
+            for (int i = 0; i < fillPatternCount.Length; i++)
+            {
+                for (int j = 0; j < fillPatternCount[i]; j++)
+                {
+                    patternList.Add((Pattern)i);
+                }
+            }
+            patternList = patternList.OrderBy(e => rnd.Next()).ToList();
+
+            //Debug.LogFormat("Shuffled pattern list {0}", patternList.ToString());
+            patternList.ForEach(e => Debug.Log(e));
+
+            List<int> totalValueList = new List<int>();
+            foreach (var pattern in patternList)
+            {
+                var valueList = GetFillPattern(pattern, 5);
+                totalValueList.AddRange(valueList);
+            }
+
+
+            //var lastLine = 3;//rnd.Next(0, columnCount);
+
+            //var answer = 0;
+            var valueEnumerator = totalValueList.GetEnumerator();
+            valueEnumerator.MoveNext();
+            for (var i = 0; i < columnCount; i++)
+            {
+                for (var j = 0; j < columnCount; j++)
+                {
+                    if (i == 0 || i == columnCount - 1 || j == 0 || j == columnCount - 1)
+                    {
+                        blockArray[j, i].empty = true;
+                    }
+                    else
+                    {
+                        blockArray[j, i].empty = false;
+                        blockArray[j, i].v = valueEnumerator.Current;
+                        valueEnumerator.MoveNext();
+                    }
+                }
+            }
+
+            return rnd.Next(10, 20);
+        }
+
+        private int FillRandom(int m)
         {
             var rnd = new Random();
 
             //var lastLine = 3;//rnd.Next(0, columnCount);
 
             //var answer = 0;
-            
+
             for (var i = 0; i < columnCount; i++)
             {
                 for (var j = 0; j < columnCount; j++)
@@ -119,7 +232,7 @@ namespace Assets.Scripts
                 }
             }
 
-            return rnd.Next(10,20);
+            return rnd.Next(10, 20);
         }
 
         // Update is called once per frame
@@ -236,7 +349,7 @@ namespace Assets.Scripts
                 {
                     continue;
                 }
-                
+
                 if (blockMemo.Contains(n))
                 {
                     continue;
